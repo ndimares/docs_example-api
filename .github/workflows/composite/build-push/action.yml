@@ -1,0 +1,54 @@
+name: 'Build and Push image'
+description: 'Composite action to generate registry images'
+inputs:
+  registry:
+    description: 'Image registry to use'
+    required: true
+    default: 'gcr.io/linen-analyst-344721'
+  username:
+    description: 'Username to the image registry'
+    required: true
+  password:
+    description: 'Password for the image registry'
+    required: true
+  image:
+    description: 'Docker image to build'
+    required: true
+  context:
+    description: 'Context to docker build'
+    required: true
+    default: "."
+  file:
+    description: 'Path to the docker file relative to context'
+    required: true
+  build-args:
+    description: 'Build arguments for docker'
+    required: false
+  git-auth-token:
+    description: 'The github access token for accessing private repos'
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Extract Docker metadata
+      id: meta
+      uses: docker/metadata-action@v4.0.0
+      with:
+        images: ${{ inputs.registry }}/${{ inputs.image }}
+        tags: |
+          type=ref,event=branch
+          type=ref,event=tag
+          type=schedule,pattern=nightly
+          type=sha,format=long
+    - name: Build and push registry Docker image
+      uses: docker/build-push-action@v3.0.0
+      with:
+        context: ${{ inputs.context }}
+        file: ${{ inputs.file }}
+        # push: ${{ github.event_name != 'pull_request' }}
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        build-args: ${{ inputs.build-args }}
+        secrets: |
+            git_auth_token=${{ inputs.git-auth-token }}

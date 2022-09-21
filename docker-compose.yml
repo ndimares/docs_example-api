@@ -1,0 +1,37 @@
+version: "3.9"
+services:
+  app:
+    build:
+      context: .
+      args:
+        GIT_USERNAME: ${GIT_USERNAME}
+        TOKEN: ${GIT_AUTH_TOKEN}
+    ports:
+      - "8081:8081"
+    depends_on:
+      - postgres
+    networks:
+      - localnet
+    environment:
+      SPEAKEASY_ENVIRONMENT: docker
+      POSTGRES_DSN: postgres://guest:guest@postgres:5431/speakeasy?sslmode=disable
+      SPEAKEASY_SERVER_URL: registry:9090
+      SPEAKEASY_SDK_API_KEY: ${SPEAKEASY_SDK_API_KEY}
+      SPEAKEASY_SERVER_SECURE: false
+  postgres:
+    image: postgres:alpine
+    restart: always
+    environment:
+      POSTGRES_USER: guest
+      POSTGRES_PASSWORD: guest
+      POSTGRES_DB: speakeasy
+    command: -p 5431
+    expose:
+      - "5431"
+    ports:
+      - "5431:5431"
+    networks:
+      - localnet
+networks:
+  localnet:
+    name: speakeasy_network

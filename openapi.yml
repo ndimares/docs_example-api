@@ -1,0 +1,74 @@
+openapi: "3.0.0"
+info:
+  title: Users API for testing Speakeasy
+  version: 1.0.0
+paths:
+  # We only need endpoints by method and path -- schema invalidation not yet implemented.
+  # Hardcode simple 200 reponse across all endpoints for now
+  /user:
+    post:
+      operationId: createUserv1
+      summary: Create user
+      responses:
+        "200":
+          description: |-
+            200 response
+  /user/{id}:
+    get:
+      operationId: getUserv1
+      summary: Get a user by ID
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: Numeric ID of the user to get
+      responses:
+        "200":
+          description: |-
+            200 response
+    put:
+      operationId: updateUserv1
+      summary: Update a user by ID
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: Numeric ID of the user to update
+      responses:
+        "200":
+          description: |-
+            200 response
+    delete:
+      operationId: deleteUserv1
+      summary: Delete a user by ID
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: Numeric ID of the user to delete
+      responses:
+        "200":
+          description: |-
+            200 response
+  /users/search:
+    post:
+      operationId: searchUsersv1
+      summary: Search users
+      responses:
+        "200":
+          description: |-
+            200 response
+  /health:
+    get:
+      operationId: healthv1
+      summary: Healthcheck
+      responses:
+        "200":
+          description: |-
+            200 response

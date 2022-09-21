@@ -1,0 +1,54 @@
+name: Publish Image to Speakasy Docker Registry
+on:
+  push:
+    branches: [main]
+    # Publish semver tags as releases.
+    tags: ["v*.*.*"]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+env:
+  REGISTRY: gcr.io/linen-analyst-344721 #gcr for speakeasy-common gcr registry
+  DOCKER_REPOSITORY_OWNER: ${{github.repository_owner}}
+jobs:
+  build-speakeasy-test-rest-service:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: "read"
+      id-token: "write"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - id: "auth"
+        name: "Authenticate to Google Cloud"
+        uses: google-github-actions/auth@v0
+        with:
+          token_format: "access_token"
+          workload_identity_provider: "projects/409661704476/locations/global/workloadIdentityPools/ga-pool/providers/github-oidc-provider"
+          service_account: "speakeasy-registry-ga-ci@linen-analyst-344721.iam.gserviceaccount.com"
+
+      - name: Echo
+        run: |
+          echo '::echo::on'
+          echo ${{ steps.auth.outputs.access_token }}
+
+      - name: Login to GCR
+        uses: docker/login-action@v2
+        with:
+          registry: gcr.io/linen-analyst-344721
+          username: oauth2accesstoken
+          password: ${{ steps.auth.outputs.access_token }}
+
+      - name: Build and push Docker image to Google Container Registry
+        uses: ./.github/workflows/composite/build-push
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: oauth2accesstoken
+          password: ${{ steps.generate_access_token.outputs.token }}
+          image: ${{ env.DOCKER_REPOSITORY_OWNER }}/speakeasy-test-rest-service
+          context: .
+          file: Dockerfile
+          git-auth-token: ${{ secrets.BOT_REPO_TOKEN }}
+          build-args: |
+            GIT_USERNAME=speakeasybot
